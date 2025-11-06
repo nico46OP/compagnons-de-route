@@ -1,0 +1,24 @@
+{
+  "name": "Compagnons de Route",
+  "short_name": "CDR",
+  "description": "Application francophone de mise en relation entre voyageurs souhaitant partager trajets, activités et aventures.",
+  "start_url": "https://compagnonsderoute.lovable.app/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FDF5E6",
+  "theme_color": "#E6772E",
+  "orientation": "portrait",
+  "id": "com.compagnonsderoute",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
