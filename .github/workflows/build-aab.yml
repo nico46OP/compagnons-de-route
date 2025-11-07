@@ -1,0 +1,58 @@
+name: Build Android AAB (Bubblewrap)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install Android SDK (cmdline-tools + platform-tools)
+        uses: r0adkll/setup-android@v2
+        with:
+          sdk: "platform-tools,platforms;android-33,build-tools;33.0.2"
+          ndk: ""
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Initialize bubblewrap (generate project)
+        run: |
+          # change URL if needed
+          bubblewrap init --manifest https://raw.githubusercontent.com/nico46OP/compagnons-de-route/main/manifest.json --directory bubblewrap_out --short-name "Compagnons" --application-name "Compagnons de Route" --package-id "com.compagnonsderoute" || true
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+
+      - name: Build the Android app bundle
+        working-directory: bubblewrap_out
+        run: |
+          # Build AAB
+          bubblewrap build --mode release --keystore-path ./keystore.jks --keystore-password dummy --key-alias dummy || true
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+
+      - name: Upload build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bubblewrap-artifacts
+          path: |
+            bubblewrap_out/*.aab
+            bubblewrap_out/*.apk
