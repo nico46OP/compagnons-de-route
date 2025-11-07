@@ -20,7 +20,8 @@ jobs:
           java-version: '11'
 
       - name: Install Android SDK (cmdline-tools + platform-tools)
-        uses: r0adkll/setup-android@v2
+        uses: android-actions/setup-android@v3
+
         with:
           sdk: "platform-tools,platforms;android-33,build-tools;33.0.2"
           ndk: ""
