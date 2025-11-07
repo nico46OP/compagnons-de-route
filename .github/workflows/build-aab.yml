@@ -1,4 +1,4 @@
-name: Build Android AAB (Bubblewrap)
+name: Build Android APK/AAB (Bubblewrap)
 
 on:
   workflow_dispatch:
@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,16 +18,19 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
-      - name: Install Android SDK (cmdline-tools + platform-tools)
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
         with:
-          sdk: "platform-tools,platforms;android-33,build-tools;33.0.2"
-          ndk: ""
+          cmdline-tools-version: 10406996
+          accept-android-sdk-licenses: true
+          packages: |
+            platform-tools
+            platforms;android-33
+            build-tools;33.0.2
 
-      - name: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -34,26 +38,28 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize bubblewrap (generate project)
+      - name: Init Bubblewrap project
         run: |
-          # change URL if needed
-          bubblewrap init --manifest https://raw.githubusercontent.com/nico46OP/compagnons-de-route/main/manifest.json --directory bubblewrap_out --short-name "Compagnons" --application-name "Compagnons de Route" --package-id "com.compagnonsderoute" || true
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+          rm -rf bubblewrap_out
+          bubblewrap init \
+            --manifest https://raw.githubusercontent.com/nico46OP/compagnons-de-route/main/manifest.json \
+            --directory bubblewrap_out \
+            --short-name "Compagnons" \
+            --application-name "Compagnons de Route" \
+            --package-id "com.compagnonsderoute"
 
-      - name: Build the Android app bundle
+      - name: Build Debug APK (for testing)
         working-directory: bubblewrap_out
         run: |
-          # Build AAB
-          bubblewrap build --mode release --keystore-path ./keystore.jks --keystore-password dummy --key-alias dummy || true
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+          bubblewrap build --mode debug
 
-      - name: Upload build artifact
-        if: always()
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bubblewrap-artifacts
           path: |
+            bubblewrap_out/**/*.apk
+            bubblewrap_out/**/*.aab
+
             bubblewrap_out/*.aab
             bubblewrap_out/*.apk
